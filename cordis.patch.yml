@@ -1,0 +1,67 @@
+# pi-context: register a "pi" agent preset, selectable as a mode. The preset
+# mounts the facade for its agents only, with pi's compaction backend inside an
+# isolated compaction group.
+# Read pi's user-level ~/.pi/agent/mcp.json and register those servers with
+# DSH's global MCP manager. Pi 模式 then sees the same MCP namespace as pi.
+- insert:
+    - id: pi-client
+      name: '@skiyer/dsh-pi-context'
+      config:
+        clientOnly: true
+    - id: pi-settings
+      name: '@skiyer/dsh-pi-context/settings'
+    - id: pi-mcp-config
+      name: '@skiyer/dsh-pi-context/mcp-config'
+    - id: preset-pi
+      name: '@deepseek-ai/dsh-agent-preset'
+      config:
+        id: pi
+        name: Pi 模式
+        description: 固定 read/bash/edit/write/codemode 五个工具；MCP 工具只在 codemode 中调用；skill 以 <skills> 列目录、用 read 加载；提示词与压缩沿用 pi 的结构。
+        order: 0
+        plugins:
+          - id: persona
+            name: '@deepseek-ai/dsh-persona'
+            config:
+              prefix: |-
+                You are an AI agent powered by DeepSeek Harness in Pi mode. Help users inspect files, run commands, and modify code.
+                <pi-cwd>{{pi_cwd}}</pi-cwd>
+                <pi-skills>{{pi_skills}}</pi-skills>
+              complete: true
+              includeRuntimeContext: false
+          - id: pi-context
+            name: '@skiyer/dsh-pi-context'
+            config:
+              mount: preset
+              installPromptSection: false
+              gatewayOrigins:
+                - http://127.0.0.1:3425
+              codemode: true
+              suppressPromptContext: true
+              # ida-mcp starts IDA before it can list tools; give it time.
+              mcpWaitMs: 60000
+              mcpServers: {}
+          - id: inherit-guard
+            name: '@skiyer/dsh-pi-context/guard'
+            config:
+              keepMcp: true
+          - id: skill-filesystem
+            name: '@deepseek-ai/dsh-skill-filesystem'
+            config:
+              providerName: pi-filesystem
+          - id: compaction
+            name: cordis:group
+            group: true
+            isolate:
+              compaction: true
+            config:
+              - id: pi-compaction
+                name: '@skiyer/dsh-pi-context/compaction'
+                config:
+                  # pi's defaults: keep 20k recent tokens and reserve 16k.
+                  retainTokens: 20000
+                  thresholdRatio: 0.99
+                  headroomTokens: 16384
+                  maxTokens: 16384
+              - id: command-compact
+                name: '@deepseek-ai/dsh-command-compact'

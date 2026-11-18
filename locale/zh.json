@@ -1,0 +1,7 @@
+{
+  "meta": {
+    "title": "pi 上下文",
+    "description": "复刻 vanilla pi 的上下文管理：read/bash/edit/write、codemode、MCP 暴露方式与 pi 风格压缩。",
+    "detail": "docs/DETAIL.md"
+  }
+}

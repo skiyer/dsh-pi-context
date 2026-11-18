@@ -1,0 +1,7 @@
+{
+  "meta": {
+    "title": "pi context",
+    "description": "Reproduces vanilla pi's context management: read/bash/edit/write, codemode, MCP exposure and pi-style compaction.",
+    "detail": "docs/DETAIL.md"
+  }
+}
