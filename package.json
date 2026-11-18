@@ -1,6 +1,6 @@
 {
   "name": "@skiyer/dsh-pi-context",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "private": true,
   "type": "module",
   "description": "pi context management for DeepSeek Harness: tool set, codemode, MCP exposure, prompt sections and compaction.",

@@ -80,6 +80,10 @@ dsh vanilla-pi-headless "run the tests"
 
 ## Configure
 
+### npx and CLI installs
+
+`pi-compaction` loads DSH's `@deepseek-ai/dsh-compaction-basic` from the running installation. It first tries normal module resolution, then `DSH_INSTALL_DIR`, Electron resources, and the directory tree around `process.argv[1]`; this covers npx, global npm/pnpm installs, and Desktop. A missing installation reports the attempted paths.
+
 ### Windows
 
 On Windows, `bash` resolves Git for Windows, then `bash.exe` on `PATH`, including WSL/MSYS2/Cygwin, matching vanilla pi. It uses stdin transport for the legacy WSL `System32\bash.exe`. Set `shellPath` (or `PI_BASH_PATH`) to an explicit `bash.exe`. A missing shell yields pi's actionable error instead of a spawn failure.
@@ -161,6 +165,7 @@ node test/settings.mjs
 node test/parity.mjs
 node test/agents-md.mjs
 node test/shell.mjs
+node test/compaction-paths.mjs
 DSH_INSTALL_DIR="$DSH_INSTALL_DIR" ELECTRON_RUN_AS_NODE=1 "$DSH_NODE_EXECUTABLE" test/compaction.mjs
 node test/edit-parity.mjs
 ```

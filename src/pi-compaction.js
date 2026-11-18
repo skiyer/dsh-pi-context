@@ -5,6 +5,7 @@
 // with dsh-compaction-basic; only the summarization call is pi's.
 
 import { readPiSettings } from './pi-mode-settings.js';
+import { compactionBaseCandidates } from './pi-compaction-paths.js';
 
 const PI_COMPACTION_PROMPT = `The messages above are a conversation to summarize. Create a structured context checkpoint summary that another LLM will use to continue the work.
 
@@ -159,25 +160,22 @@ function collect(stream) {
 /** Find the base class from the running DSH installation. */
 async function loadBase() {
   const { existsSync } = await import('node:fs');
-  const { join, resolve } = await import('node:path');
   const { pathToFileURL } = await import('node:url');
-  const candidates = [];
-  const anchor = process.env.DSH_INSTALL_DIR;
-  if (anchor) {
-    // .../node_modules/@deepseek-ai/dsh -> sibling package
-    candidates.push(resolve(anchor, '..', 'dsh-compaction-basic', 'lib', 'index.js'));
-    candidates.push(join(anchor, 'node_modules', '@deepseek-ai', 'dsh-compaction-basic', 'lib', 'index.js'));
-    candidates.push(join(anchor, '..', 'node_modules', '@deepseek-ai', 'dsh-compaction-basic', 'lib', 'index.js'));
+  try {
+    const module = await import('@deepseek-ai/dsh-compaction-basic');
+    const BaseClass = module.BasicCompactionEngine ?? module.default;
+    if (typeof BaseClass === 'function') return BaseClass;
+  } catch {
+    // The profile-linked package cannot resolve DSH's private runtime; use the
+    // running installation's absolute path below.
   }
-  if (process.resourcesPath) {
-    candidates.push(join(process.resourcesPath, 'app.asar', 'dsh', 'node_modules', '@deepseek-ai', 'dsh-compaction-basic', 'lib', 'index.js'));
-  }
+  const candidates = compactionBaseCandidates();
   for (const candidate of candidates) {
     if (!existsSync(candidate)) continue;
     const module = await import(pathToFileURL(candidate).href);
     return module.BasicCompactionEngine ?? module.default;
   }
-  throw new Error(`Cannot locate @deepseek-ai/dsh-compaction-basic (tried: ${candidates.join(', ')})`);
+  throw new Error(`Cannot locate @deepseek-ai/dsh-compaction-basic (tried: ${candidates.join(', ') || '(no candidates)'})`);
 }
 
 const Base = await loadBase();
