@@ -1,4 +1,4 @@
-// Pi 模式 Session view: profile-wide skills/MCP/compaction settings.
+// Pi 模式 Settings section: profile-wide skills/MCP/compaction settings.
 // It reads and writes the volatile pi-settings namespace through the Settings
 // Remote, so browsing the view never creates command transcript rows.
 window.__ModuleLoader__.load({
@@ -227,7 +227,17 @@ window.__ModuleLoader__.load({
       });
 
       function PiConfigView(props) {
-        const { sessionId } = props;
+        const { sessionId: providedSessionId, useSessions } = props;
+        // Settings opens outside a Conversation. Use the most recently listed
+        // Pi Session when one exists so the model-visible skill catalog can be
+        // refreshed without requiring a session tab.
+        const activePiSessionId = typeof useSessions === 'function'
+          ? useSessions((state) => {
+            const ids = Array.isArray(state?.ids) ? state.ids : Object.keys(state?.byId ?? {});
+            return ids.find((id) => state?.byId?.[id]?.projectionValues?.agentPreset === 'pi');
+          })
+          : undefined;
+        const sessionId = providedSessionId ?? activePiSessionId;
         const [config, setConfig] = React.useState(undefined);
         const [savedConfig, setSavedConfig] = React.useState(undefined);
         const [revision, setRevision] = React.useState(undefined);
@@ -274,6 +284,13 @@ window.__ModuleLoader__.load({
               }
             } catch (reason) {
               if (active) setError(reason instanceof Error ? reason.message : String(reason));
+            }
+            if (sessionId === undefined) {
+              if (active) {
+                setAvailableSkills([]);
+                setSkillError('打开一个 Pi 模式会话后显示 skill 列表。');
+              }
+              return;
             }
             try {
               const result = await ctx.remote.skills.list({ sessionId }, abort.signal);
@@ -505,10 +522,10 @@ window.__ModuleLoader__.load({
           error !== '' ? h('div', { style: styles.error }, error) : null);
       }
 
-      ctx.slots.inject('conversation.view', () => ctx.slots.register({
-        name: 'conversation.view',
+      ctx.slots.inject('settings.section', () => ctx.slots.register({
+        name: 'settings.section',
         id: 'pi-config',
-        order: 5,
+        order: 20,
         label: 'Pi 配置',
       }, PiConfigView));
     }

@@ -44,7 +44,7 @@ DSH's MCP manager is global. The bridge therefore registers servers for the whol
 
 ## Pi settings view
 
-`pi-mode.json` in the active profile directory stores profile-wide Pi settings: `disabledSkills`, `disabledMcpServers`, and compaction `retainTokens` / `headroomTokens` / `thresholdRatio` / `maxTokens`. There is no master skills/MCP switch; each listed item is controlled independently. The `Pi 配置` Conversation View reads and writes it through the DSH Settings Remote (`pi-settings` volatile fields); a root `pi-settings` plugin mirrors those values to `pi-mode.json`. `pi-context` reads the file on each prompt/request, `PiCompactionEngine` reads it before each compaction, and the MCP bridge reads it at startup. MCP server enable/disable changes affect Pi mode on the next request; the bridge keeps the server registered so re-enabling does not require a restart.
+`pi-mode.json` in the active profile directory stores profile-wide Pi settings: `disabledSkills`, `disabledMcpServers`, and compaction `retainTokens` / `headroomTokens` / `thresholdRatio` / `maxTokens`. There is no master skills/MCP switch; each listed item is controlled independently. The `Pi 配置` Settings section reads and writes it through the DSH Settings Remote (`pi-settings` volatile fields); a root `pi-settings` plugin mirrors those values to `pi-mode.json`. `pi-context` reads the file on each prompt/request, `PiCompactionEngine` reads it before each compaction, and the MCP bridge reads it at startup. MCP server enable/disable changes affect Pi mode on the next request; the bridge keeps the server registered so re-enabling does not require a restart.
 
 ## Compaction
 
